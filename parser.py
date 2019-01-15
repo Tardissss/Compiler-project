@@ -1,5 +1,5 @@
 from rply import ParserGenerator
-from ast import Number, Sum, Sub, Mul, Div, Print, Prog, Prog_int, Less_equal, Greater_equal, Greater, Less, Not_equal, Equal
+from ast import Number, Sum, Sub, Mul, Div, Print, Prog, Prog_int, Less_equal, Greater_equal, Greater, Less, Not_equal, Equal, If_stm
 
 
 class Parser():
@@ -8,7 +8,7 @@ class Parser():
             # A list of all token names accepted by the parser.
             ['NUMBER', 'PRINT', 'OPEN_PAREN', 'CLOSE_PAREN',
              'SEMI_COLON', 'MUL', 'DIV','SUM', 'SUB', 'LESS_EQUAL', 'GREATER_EQUAL',
-             'GREATER', 'LESS', 'NOT_EQUAL', 'EQUAL'],
+             'GREATER', 'LESS', 'NOT_EQUAL', 'EQUAL', 'IF', 'ELSE', 'OPEN_BRACE', 'CLOSE_BRACE'],
              precedence=[
                         ('left', ['LESS_EQUAL', 'GREATER_EQUAL','GREATER', 'LESS', 'NOT_EQUAL', 'EQUAL']),
                         ('left', ['PLUS', 'MINUS']),
@@ -28,10 +28,10 @@ class Parser():
         @self.pg.production('program : expression SEMI_COLON')
         def program_int(p):
             return Prog_int(self.builder, self.module, p[0])   
-            
-        # @self.pg.production('expression : PRINT OPEN_PAREN expression CLOSE_PAREN ')
-        # def printf(p):
-        #     return Print(self.builder, self.module, self.printf, p[2])                 
+
+        @self.pg.production('expression : IF OPEN_PAREN expression CLOSE_PAREN OPEN_BRACE program CLOSE_BRACE ELSE OPEN_BRACE program CLOSE_BRACE')
+        def if_stm(p):
+            return If_stm(self.builder, self.module, p[2], p[5], p[9])                 
 
         @self.pg.production('expression : PRINT OPEN_PAREN expression CLOSE_PAREN ')
         def printf(p):

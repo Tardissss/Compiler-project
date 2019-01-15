@@ -142,3 +142,21 @@ class Print():
 
         # Call Print Function
         self.builder.call(self.printf, [fmt_arg, value])
+
+class If_stm():
+    def __init__(self, builder, module, value1, value2, value3):
+        self.builder = builder
+        self.module = module
+        self.value1 = value1
+        self.value2 = value2        
+        self.value3 = value3 
+
+    def eval(self):
+        with self.builder.if_else(self.value1.eval()) as (then, otherwise):
+            with then:
+                # print '111111111'
+                self.value2.eval()
+            with otherwise:
+                # print '222222222'
+                self.value3.eval()
+        return

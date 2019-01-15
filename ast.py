@@ -33,16 +33,16 @@ class Number():
         i = ir.Constant(ir.IntType(8), int(self.value))
         return i
 
-class Name():
-    def __init__(self, builder, module, value):
-        self.builder = builder
-        self.module = module
-        self.value = value
+# class Name():
+#     def __init__(self, builder, module, value):
+#         self.builder = builder
+#         self.module = module
+#         self.value = value
 
-    def eval(self):
-        i = ir.Constant(ir.PointerType(str), int(self.value))
-        # print self.value
-        return i
+#     def eval(self):
+#         i = ir.Constant(ir.PointerType(str), int(self.value))
+#         # print self.value
+#         return i
 
 # class Assign():
 #     def __init__(self, builder, module, value):
@@ -86,6 +86,37 @@ class Div(BinaryOp):
     def eval(self):
         i = self.builder.sdiv(self.left.eval(), self.right.eval())
         return i
+
+class Less_equal(BinaryOp):
+    def eval(self):
+        i = self.builder.icmp_signed('<=',self.left.eval(), self.right.eval())
+        return i
+
+class Greater_equal(BinaryOp):
+    def eval(self):
+        i = self.builder.icmp_signed('>=',self.left.eval(), self.right.eval())
+        return i
+
+class Greater(BinaryOp):
+    def eval(self):
+        i = self.builder.icmp_signed('>',self.left.eval(), self.right.eval())
+        return i
+
+class Less(BinaryOp):
+    def eval(self):
+        i = self.builder.icmp_signed('<',self.left.eval(), self.right.eval())
+        return i
+
+class Not_equal(BinaryOp):
+    def eval(self):
+        i = self.builder.icmp_signed('!=',self.left.eval(), self.right.eval())
+        return i
+
+class Equal(BinaryOp):
+    def eval(self):
+        i = self.builder.icmp_signed('==',self.left.eval(), self.right.eval())
+        return i
+
 
 
 class Print():

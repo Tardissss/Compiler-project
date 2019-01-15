@@ -10,6 +10,13 @@ class Lexer():
         self.lexer.add('PRINT', r'print')
         # Var
         self.lexer.add('VAR', r'var')
+
+        # IF ELSE
+        self.lexer.add('IF', r'if')
+        self.lexer.add('ELSE', r'else')
+        self.lexer.add('OPEN_BRACE', r'\{')
+        self.lexer.add('CLOSE_BRACE', r'\}')
+
         # Parenthesis
         self.lexer.add('OPEN_PAREN', r'\(')
         self.lexer.add('CLOSE_PAREN', r'\)')
@@ -21,19 +28,20 @@ class Lexer():
         self.lexer.add('MUL', r'\*')
         self.lexer.add('DIV', r'\/')
 
-        self.lexer.add('LESS_EQUAL', r'<=')
-        self.lexer.add('GREATER_EQUAL', r'>=')
-        self.lexer.add('GREATER', r'>')
-        self.lexer.add('LESS', r'<')
-        self.lexer.add('NOT_EQUAL', r'!=')
-        self.lexer.add('EQUAL', r'=')        
+        self.lexer.add('LESS_EQUAL', r'\<=')
+        self.lexer.add('GREATER_EQUAL', r'\>=')
+        self.lexer.add('GREATER', r'\>')
+        self.lexer.add('LESS', r'\<')
+        self.lexer.add('NOT_EQUAL', r'\!=')
+        self.lexer.add('EQUAL', r'\==')        
 
         # Assign
         self.lexer.add('ASSIGN', r'\:=')
         # Number
         self.lexer.add('NUMBER', r'\d+')
+
         # Name
-        self.lexer.add('NAME', r'([_A-Za-z])*')
+        self.lexer.add('NAME', r'[_A-Za-z]*')
 
         # Ignore spaces
         self.lexer.ignore('\s+')

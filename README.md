@@ -1,2 +1,2 @@
-# Compiler-project
-Writing a simple language with rply and llvmlite
+# PythonCompiler
+Code used on "Writing your own programming language and compiler with Python" post

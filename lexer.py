@@ -10,6 +10,9 @@ class Lexer():
         self.lexer.add('PRINT', r'print')
         # Var
         self.lexer.add('VAR', r'var')
+        # OR & AND
+        self.lexer.add('OR', r'\|')
+        self.lexer.add('AND', r'and')
 
         # IF ELSE
         self.lexer.add('IF', r'if')

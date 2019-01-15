@@ -117,6 +117,15 @@ class Equal(BinaryOp):
         i = self.builder.icmp_signed('==',self.left.eval(), self.right.eval())
         return i
 
+class And(BinaryOp):
+    def eval(self):
+        i = self.builder.and_(self.left.eval(), self.right.eval())
+        return i
+
+class Or(BinaryOp):
+    def eval(self):
+        i = self.builder.or_(self.left.eval(), self.right.eval())
+        return i
 
 
 class Print():

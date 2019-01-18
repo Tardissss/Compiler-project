@@ -6,6 +6,7 @@ from ast import *
 def keyword(kw):
     return Reserved(kw, RESERVED)
 
+# change str to array
 def str2array(input):
     array1 = input.replace('[','').replace(']','').split(',')
     array2 = []
@@ -20,6 +21,7 @@ def str2array(input):
 #     print array, index
 #     return array[index]
 
+# Basic types
 num = Tag(INT) ^ (lambda i: int(i))
 array = Tag(ARRAY) ^ str2array
 # index = Tag(INDEX) ^ str2index
@@ -39,6 +41,7 @@ def stmt_list():
     separator = keyword(';') ^ (lambda x: lambda l, r: CompoundStatement(l, r))
     return Exp(stmt(), separator)
 
+# Different statements
 def stmt():
     return index_stmt_8()  | \
            index_stmt_9()  | \
@@ -57,18 +60,21 @@ def stmt():
            read_stmt()   | \
            print_stmt()
 
+# Basic assign stmts for simple id variable
 def assign_stmt():
     def process(parsed):
         ((name, _), exp) = parsed
         return AssignStatement(name, exp)
     return id + keyword(':=') + aexp() ^ process
 
+# Basic bool stmts
 def bool_stmt():
     def process(parsed):
         ((name, _), exp) = parsed
         return AssignStatement(name, exp)
     return id + keyword(':=') + bexp() ^ process
 
+# If stmts
 def if_stmt():
     def process(parsed):
         (((((_, condition), _), true_stmt), false_parsed), _) = parsed
@@ -82,6 +88,7 @@ def if_stmt():
            Opt(keyword('else') + Lazy(stmt_list)) + \
            keyword('end') ^ process
 
+# While stmts
 def while_stmt():
     def process(parsed):
         ((((_, condition), _), body), _) = parsed
@@ -90,23 +97,30 @@ def while_stmt():
            keyword('do') + Lazy(stmt_list) + \
            keyword('end') ^ process
 
+# Print stmts
 def print_stmt():
     def process(parsed):
         (_, exp) = parsed
         return PrintStatement(exp)
     return keyword('print') + aexp() ^ process
 
+# Readin stmts
 def read_stmt():
     def process(parsed):
         ((_, name1), name2) = parsed
         return ReadStatement(name1, name2)
     return keyword('readin') + string + id ^ process
 
+# Apeend stmts
 def append_stmt():
     def process(parsed):
         ((_, name), exp) = parsed
         return AppendStatement(name, exp)
     return keyword('append') + id + aexp() ^ process
+
+
+# The following definations are different index assignments.
+# In ordder to be simple to understand, we write a simple example for each stmt 
 
 # y := x[1]
 def index_stmt_1():
@@ -171,6 +185,7 @@ def index_stmt_2():
 #         return IndexStatement_3(name, exp1, exp2)
 #     return id + aexp() + keyword(':=') + aexp() ^ process
 
+# length attr for array
 def length_stmt():
     def process(parsed):
         (((name1, _), name2),_) = parsed
@@ -195,9 +210,13 @@ def bexp_term():
 def bexp_not():
     return keyword('not') + Lazy(bexp_term) ^ (lambda parsed: NotBexp(parsed[1]))
 
+# Basci bool stmt
 def bexp_relop1():
     relops = ['<', '<=', '>', '>=', '=', '!=']
     return aexp() + any_operator_in_list(relops) + aexp() ^ process_relop
+
+# The following definations are different bool comparetions.
+# In ordder to be simple to understand, we write a simple example for each stmt 
 
 # list[a] < list[b]
 def bexp_relop2():
@@ -246,7 +265,8 @@ def aexp_term():
 
 def aexp_group():
     return keyword('(') + Lazy(aexp) + keyword(')') ^ process_group
-           
+
+# Get the value of each arithmatic expressiohn           
 def aexp_value():
     return (num ^ (lambda i: IntAexp(i))) | \
            (array ^ (lambda i: ArrayAexp(i))) | \

@@ -1,6 +1,8 @@
 import sys
 import re
 
+
+# Tokens
 RESERVED = 'RESERVED'
 INT      = 'INT'
 ID       = 'ID'
@@ -56,6 +58,7 @@ def lex(characters, token_exprs):
     tokens = []
     while pos < len(characters):
         match = None
+        # Combine all the tokens we have
         for token_expr in token_exprs:
             pattern, tag = token_expr
             regex = re.compile(pattern)
@@ -66,6 +69,7 @@ def lex(characters, token_exprs):
                     token = (text, tag)
                     tokens.append(token)
                 break
+        # If find unmatched situation
         if not match:
             sys.stderr.write('Illegal character: %s\n' % characters[pos])
             sys.exit(1)

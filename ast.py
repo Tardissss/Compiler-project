@@ -1,3 +1,4 @@
+# Comapre class
 class Equality:
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
@@ -6,15 +7,19 @@ class Equality:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+# Statement class
 class Statement(Equality):
     pass
 
+# Arithmetic expression class
 class Aexp(Equality):
     pass
 
+# Bool expression class
 class Bexp(Equality):
     pass
 
+# Basic Assignment statement class
 class AssignStatement(Statement):
     def __init__(self, name, aexp):
         self.name = name
@@ -27,6 +32,7 @@ class AssignStatement(Statement):
         value = self.aexp.eval(env, c_env)
         env[self.name] = value
 
+# Compound statement class
 class CompoundStatement(Statement):
     def __init__(self, first, second):
         self.first = first
@@ -39,6 +45,7 @@ class CompoundStatement(Statement):
         self.first.eval(env, c_env)
         self.second.eval(env, c_env)
 
+# If statement class
 class IfStatement(Statement):
     def __init__(self, condition, true_stmt, false_stmt):
         self.condition = condition
@@ -56,6 +63,7 @@ class IfStatement(Statement):
             if self.false_stmt:
                 self.false_stmt.eval(env, c_env)
 
+# While statement class
 class WhileStatement(Statement):
     def __init__(self, condition, body):
         self.condition = condition
@@ -79,6 +87,7 @@ class WhileStatement(Statement):
             if counter > 1000:
                 exit("Error! It seems there is an infinite loop.")
 
+# Print statement class
 class PrintStatement(Statement):
     def __init__(self, aexp):
         self.aexp = aexp
@@ -90,6 +99,7 @@ class PrintStatement(Statement):
         value = self.aexp.eval(env, c_env)
         print value
 
+# Readin statement class
 class ReadStatement(Statement):
     def __init__(self, name1, name2):
         self.name1 = name1
@@ -102,6 +112,7 @@ class ReadStatement(Statement):
         value = input(self.name1.replace('\"','') + '\n' + self.name2 + ':=')
         env[self.name2] = value
 
+# Append statement class
 class AppendStatement(Statement):
     def __init__(self, name, aexp):
         self.name = name
@@ -114,6 +125,7 @@ class AppendStatement(Statement):
         value = self.aexp.eval(env, c_env);
         env[self.name].append(value)
 
+# Index assignment statement class: y := x[1]
 class IndexStatement_1(Statement):
     def __init__(self, name1, name2, aexp):
         self.name1 = name1
@@ -130,6 +142,7 @@ class IndexStatement_1(Statement):
         value = array[index[0]]
         env[self.name1] = value
 
+# Index assignment statement class: y[1] := x
 class IndexStatement_2(Statement):
     def __init__(self, name, aexp1, aexp2):
         self.name = name
@@ -145,6 +158,7 @@ class IndexStatement_2(Statement):
         value = self.aexp2.eval(env, c_env) 
         env[self.name][index[0]] = value  
 
+# Index assignment statement class: y := x[1]
 class IndexStatement_3(Statement):
     def __init__(self, name, aexp1, aexp2):
         self.name = name
@@ -160,6 +174,7 @@ class IndexStatement_3(Statement):
         value = self.aexp2.eval(env, c_env)
         env[self.name][index[0]] = value  
 
+# Index assignment statement class: y := x[a]
 class IndexStatement_4(Statement):
     def __init__(self, name1, name2, aexp):
         self.name1 = name1
@@ -177,6 +192,7 @@ class IndexStatement_4(Statement):
         # print value
         env[self.name1] = value 
 
+# Index assignment statement class: x[a] := 1
 class IndexStatement_5(Statement):
     def __init__(self, name, aexp1, aexp2):
         self.name = name
@@ -193,6 +209,7 @@ class IndexStatement_5(Statement):
         value = self.aexp2.eval(env, c_env)
         env[self.name][self.aexp1.eval(env, c_env)] = value 
 
+# Index assignment statement class: list[1] := list[2];
 class IndexStatement_6(Statement):
     def __init__(self, name1, aexp1, name2, aexp2):
         self.name1 = name1
@@ -210,6 +227,7 @@ class IndexStatement_6(Statement):
         value = env[self.name2][self.aexp2.eval(env, c_env)[0]]
         env[self.name1][self.aexp1.eval(env, c_env)[0]] = value
 
+# Index assignment statement class: list[2] := list[a];
 class IndexStatement_7(Statement):
     def __init__(self, name1, aexp1, name2, aexp2):
         self.name1 = name1
@@ -227,6 +245,7 @@ class IndexStatement_7(Statement):
         value = env[self.name2][self.aexp2.eval(env, c_env)]
         env[self.name1][self.aexp1.eval(env, c_env)[0]] = value
 
+# Index assignment statement class: list[a] := list[1];
 class IndexStatement_8(Statement):
     def __init__(self, name1, aexp1, name2, aexp2):
         self.name1 = name1
@@ -244,7 +263,7 @@ class IndexStatement_8(Statement):
         value = env[self.name2][self.aexp2.eval(env, c_env)[0]]
         env[self.name1][self.aexp1.eval(env, c_env)] = value
 
-
+# Index assignment statement class: list[a] := list[a];
 class IndexStatement_9(Statement):
     def __init__(self, name1, exp1, name2, exp2):
         self.name1 = name1
@@ -262,6 +281,7 @@ class IndexStatement_9(Statement):
         value = env[self.name2][self.exp2.eval(env, c_env)]
         env[self.name1][self.exp1.eval(env, c_env)] = value
 
+# Length statement class
 class LengthStatement(Statement):
     def __init__(self, name1, name2):
         self.name1 = name1
@@ -274,6 +294,7 @@ class LengthStatement(Statement):
         array = env[self.name2]
         env[self.name1] = len(array) 
 
+# Int arithmatic class
 class IntAexp(Aexp):
     def __init__(self, i):
         self.i = i
@@ -284,6 +305,7 @@ class IntAexp(Aexp):
     def eval(self, env, c_env):
         return self.i
 
+# Array arithmatic class
 class ArrayAexp(Aexp):
     def __init__(self, i):
         self.i = i
@@ -294,6 +316,7 @@ class ArrayAexp(Aexp):
     def eval(self, env, c_env):
         return self.i
 
+# Str arithmatic class
 class StrAexp(Aexp):
     def __init__(self, i):
         self.i = i
@@ -304,6 +327,7 @@ class StrAexp(Aexp):
     def eval(self, env, c_env):
         return self.i
 
+# Variable arithmatic class
 class VarAexp(Aexp):
     def __init__(self, name):
         self.name = name
@@ -317,6 +341,7 @@ class VarAexp(Aexp):
         else:
             return 0
 
+# Bool comparation class
 class BinopAexp(Aexp):
     def __init__(self, op, left, right):
         self.op = op
@@ -346,6 +371,7 @@ class BinopAexp(Aexp):
             raise RuntimeError('unknown operator: ' + self.op)
         return value
 
+# Bool comparation class
 class RelopBexp(Bexp):
     def __init__(self, op, left, right):
         self.op = op
@@ -392,6 +418,7 @@ class RelopBexp(Bexp):
             raise RuntimeError('unknown operator: ' + self.op)
         return value
 
+# Bool comparation class for array and index
 class RelopBexp2(Bexp):
     def __init__(self, name1, aexp1, op, name2, aexp2):
         self.op = op
@@ -433,7 +460,7 @@ class RelopBexp2(Bexp):
         return value
 
 
-
+# And class
 class AndBexp(Bexp):
     def __init__(self, left, right):
         self.left = left
@@ -447,6 +474,7 @@ class AndBexp(Bexp):
         right_value = self.right.eval(env, c_env)
         return left_value and right_value
 
+# Or class
 class OrBexp(Bexp):
     def __init__(self, left, right):
         self.left = left
@@ -460,6 +488,7 @@ class OrBexp(Bexp):
         right_value = self.right.eval(env, c_env)
         return left_value or right_value
 
+# Not class
 class NotBexp(Bexp):
     def __init__(self, exp):
         self.exp = exp

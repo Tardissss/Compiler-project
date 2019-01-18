@@ -1,104 +1,299 @@
-from rply import ParserGenerator
-from ast import Number, Sum, Sub, Mul, Div, Print, Prog, Prog_int, Less_equal, Greater_equal, Greater, Less, Not_equal, Equal, If_stm, Or, And
+from lexer import *
+from combinators import *
+from ast import *
+
+# Basic parsers
+def keyword(kw):
+    return Reserved(kw, RESERVED)
+
+def str2array(input):
+    array1 = input.replace('[','').replace(']','').split(',')
+    array2 = []
+    for i in array1:
+        array2.append(int(i))
+    return array2
+
+# def str2index(input):
+#     array = env[input.split('[')[0]]
+#     index = input.split('[').split(']')[0]
+    
+#     print array, index
+#     return array[index]
+
+num = Tag(INT) ^ (lambda i: int(i))
+array = Tag(ARRAY) ^ str2array
+# index = Tag(INDEX) ^ str2index
+id = Tag(ID)
+string = Tag(STRING) ^ (lambda i: str(i).replace("\"",""))
+
+# Top level parser
+def foo_parse(tokens):
+    ast = parser()(tokens, 0)
+    return ast
+
+def parser():
+    return Phrase(stmt_list())    
+
+# Statements
+def stmt_list():
+    separator = keyword(';') ^ (lambda x: lambda l, r: CompoundStatement(l, r))
+    return Exp(stmt(), separator)
+
+def stmt():
+    return index_stmt_8()  | \
+           index_stmt_9()  | \
+           index_stmt_4()  | \
+           index_stmt_5()  | \
+           index_stmt_6()  | \
+           index_stmt_7()  | \
+           length_stmt()   | \
+           index_stmt_1()  | \
+           index_stmt_2()  | \
+           assign_stmt() | \
+           bool_stmt() | \
+           if_stmt()     | \
+           while_stmt()  | \
+           append_stmt() | \
+           read_stmt()   | \
+           print_stmt()
+
+def assign_stmt():
+    def process(parsed):
+        ((name, _), exp) = parsed
+        return AssignStatement(name, exp)
+    return id + keyword(':=') + aexp() ^ process
+
+def bool_stmt():
+    def process(parsed):
+        ((name, _), exp) = parsed
+        return AssignStatement(name, exp)
+    return id + keyword(':=') + bexp() ^ process
+
+def if_stmt():
+    def process(parsed):
+        (((((_, condition), _), true_stmt), false_parsed), _) = parsed
+        if false_parsed:
+            (_, false_stmt) = false_parsed
+        else:
+            false_stmt = None
+        return IfStatement(condition, true_stmt, false_stmt)
+    return keyword('if') + bexp() + \
+           keyword('then') + Lazy(stmt_list) + \
+           Opt(keyword('else') + Lazy(stmt_list)) + \
+           keyword('end') ^ process
+
+def while_stmt():
+    def process(parsed):
+        ((((_, condition), _), body), _) = parsed
+        return WhileStatement(condition, body)
+    return keyword('while') + bexp() + \
+           keyword('do') + Lazy(stmt_list) + \
+           keyword('end') ^ process
+
+def print_stmt():
+    def process(parsed):
+        (_, exp) = parsed
+        return PrintStatement(exp)
+    return keyword('print') + aexp() ^ process
+
+def read_stmt():
+    def process(parsed):
+        ((_, name1), name2) = parsed
+        return ReadStatement(name1, name2)
+    return keyword('readin') + string + id ^ process
+
+def append_stmt():
+    def process(parsed):
+        ((_, name), exp) = parsed
+        return AppendStatement(name, exp)
+    return keyword('append') + id + aexp() ^ process
+
+# y := x[1]
+def index_stmt_1():
+    def process(parsed):
+        (((name1, _), name2), exp) = parsed
+        return IndexStatement_1(name1, name2, exp)
+    return id + keyword(':=') + id + aexp() ^ process
+
+# y := x[a]
+def index_stmt_4():
+    def process(parsed):
+        (((((name1, _), name2), _), exp),_) = parsed
+        return IndexStatement_4(name1, name2, exp)
+    return id + keyword(':=') + id + keyword('[') + aexp() + keyword(']') ^ process
+
+# x[a] := 1
+def index_stmt_5():
+    def process(parsed):
+        (((((name, _), exp1), _), _), exp2) = parsed
+        return IndexStatement_5(name, exp1, exp2)
+    return id + keyword('[') + aexp() + keyword(']') + keyword(':=') + aexp() ^ process
+
+# list[1] := list[2];
+def index_stmt_6():
+    def process(parsed):
+        ((((name1, exp1), _), name2), exp2) = parsed
+        return IndexStatement_6(name1, exp1, name2, exp2)
+    return id + aexp() + keyword(':=') + id + aexp() ^ process
+
+# list[2] := list[a];
+def index_stmt_7():
+    def process(parsed):
+        ((((((name1, exp1), _), name2),_), exp2), _) = parsed
+        return IndexStatement_7(name1, exp, name2, exp2)
+    return id + aexp() + keyword(':=') + id + keyword('[') + aexp() + keyword(']') ^ process
+
+# list[a] := list[1];
+def index_stmt_8():
+    def process(parsed):
+        ((((((name1, _), exp1), _),_), name2), exp2) = parsed
+        return IndexStatement_8(name1, exp1, name2, exp2)
+    return id + keyword('[') + aexp() + keyword(']') + keyword(':=') + id + aexp() ^ process
+
+# list[a] := list[a];
+def index_stmt_9():
+    def process(parsed):
+        ((((((((name1, _), exp1), _),_), name2), _), exp2), _) = parsed
+        return IndexStatement_9(name1, exp1, name2, exp2)
+    return id + keyword('[') + aexp() + keyword(']') + keyword(':=') + id + keyword('[') + aexp() + keyword(']') ^ process
+
+# y[1] := x
+def index_stmt_2():
+    def process(parsed):
+        (((name, exp1), _), exp2) = parsed
+        return IndexStatement_2(name, exp1, exp2)
+    return id + aexp() + keyword(':=') + aexp() ^ process
+
+# y[1] := 1
+# def index_stmt_3():
+#     def process(parsed):
+#         (((name, exp1), _), exp2) = parsed
+#         return IndexStatement_3(name, exp1, exp2)
+#     return id + aexp() + keyword(':=') + aexp() ^ process
+
+def length_stmt():
+    def process(parsed):
+        (((name1, _), name2),_) = parsed
+        return LengthStatement(name1, name2)
+    return id + keyword(':=') + id + keyword('.l') ^ process
+
+# Boolean expressions
+def bexp():
+    return precedence(bexp_term(),
+                      bexp_precedence_levels,
+                      process_logic)
+
+def bexp_term():
+    return bexp_not()   | \
+           bexp_relop2() | \
+           bexp_relop3() | \
+           bexp_relop4() | \
+           bexp_relop5() | \
+           bexp_relop1() | \
+           bexp_group()
+
+def bexp_not():
+    return keyword('not') + Lazy(bexp_term) ^ (lambda parsed: NotBexp(parsed[1]))
+
+def bexp_relop1():
+    relops = ['<', '<=', '>', '>=', '=', '!=']
+    return aexp() + any_operator_in_list(relops) + aexp() ^ process_relop
+
+# list[a] < list[b]
+def bexp_relop2():
+    def process_relop2(parsed):
+        ((((((((name1, _), exp1), _), op), name2), _), exp2), _) = parsed
+        return RelopBexp2(name1, exp1, op, name2, exp2)
+    relops = ['<', '<=', '>', '>=', '=', '!=']
+    return id + keyword('[') + aexp() + keyword(']') + any_operator_in_list(relops) + id + keyword('[') + aexp() + keyword(']') ^ process_relop2
+
+# list[a] < list[1]
+def bexp_relop3():
+    def process_relop2(parsed):
+        ((((((name1, _), exp1), _), op), name2), exp2) = parsed
+        return RelopBexp2(name1, exp1, op, name2, exp2)
+    relops = ['<', '<=', '>', '>=', '=', '!=']
+    return id + keyword('[') + aexp() + keyword(']') + any_operator_in_list(relops) + id + aexp() ^ process_relop2
+
+# list[1] < list[b]
+def bexp_relop4():
+    def process_relop2(parsed):
+        ((((((name1, exp1), op), name2), _), exp2), _) = parsed
+        return RelopBexp2(name1, exp1, op, name2, exp2)
+    relops = ['<', '<=', '>', '>=', '=', '!=']
+    return id + aexp() + any_operator_in_list(relops) + id + keyword('[') + aexp() + keyword(']') ^ process_relop2
+
+# list[1] < list[b]
+def bexp_relop5():
+    def process_relop2(parsed):
+        ((((name1, exp1), op), name2), exp2) = parsed
+        return RelopBexp2(name1, exp1, op, name2, exp2)
+    relops = ['<', '<=', '>', '>=', '=', '!=']
+    return id + aexp() + any_operator_in_list(relops) + id + aexp() ^ process_relop2
 
 
-class Parser():
-    def __init__(self, module, builder, printf):
-        self.pg = ParserGenerator(
-            # A list of all token names accepted by the parser.
-            ['NUMBER', 'PRINT', 'OPEN_PAREN', 'CLOSE_PAREN',
-             'SEMI_COLON', 'MUL', 'DIV','SUM', 'SUB', 'LESS_EQUAL', 'GREATER_EQUAL',
-             'GREATER', 'LESS', 'NOT_EQUAL', 'EQUAL', 'IF', 'ELSE', 'OPEN_BRACE', 'CLOSE_BRACE', 'AND', 'OR'],
-             precedence=[
-                        ('left', ['AND', 'OR']),
-                        ('left', ['LESS_EQUAL', 'GREATER_EQUAL','GREATER', 'LESS', 'NOT_EQUAL', 'EQUAL']),
-                        ('left', ['PLUS', 'MINUS']),
-                        ('left', ['MUL', 'DIV'])
-                                                    ]
-        )
-        self.module = module
-        self.builder = builder
-        self.printf = printf
+def bexp_group():
+    return keyword('(') + Lazy(bexp) + keyword(')') ^ process_group
 
-    def parse(self):
+# Arithmetic expressions
+def aexp():
+    return precedence(aexp_term(),
+                      aexp_precedence_levels,
+                      process_binop)
 
-        @self.pg.production('program : expression SEMI_COLON program')
-        def program(p):
-            return Prog(self.builder, self.module, p[0], p[2]) 
+def aexp_term():
+    return aexp_value() | aexp_group()
 
-        @self.pg.production('program : expression SEMI_COLON')
-        def program_int(p):
-            return Prog_int(self.builder, self.module, p[0])   
+def aexp_group():
+    return keyword('(') + Lazy(aexp) + keyword(')') ^ process_group
+           
+def aexp_value():
+    return (num ^ (lambda i: IntAexp(i))) | \
+           (array ^ (lambda i: ArrayAexp(i))) | \
+           (string ^ (lambda i: StrAexp(i))) | \
+           (id  ^ (lambda v: VarAexp(v)))
 
-        @self.pg.production('expression : IF OPEN_PAREN expression CLOSE_PAREN OPEN_BRACE program CLOSE_BRACE ELSE OPEN_BRACE program CLOSE_BRACE')
-        def if_stm(p):
-            return If_stm(self.builder, self.module, p[2], p[5], p[9])                 
+# An IMP-specific combinator for binary operator expressions (aexp and bexp)
+def precedence(value_parser, precedence_levels, combine):
+    def op_parser(precedence_level):
+        return any_operator_in_list(precedence_level) ^ combine
+    parser = value_parser * op_parser(precedence_levels[0])
+    for precedence_level in precedence_levels[1:]:
+        parser = parser * op_parser(precedence_level)
+    return parser
 
-        @self.pg.production('expression : PRINT OPEN_PAREN expression CLOSE_PAREN ')
-        def printf(p):
-            return Print(self.builder, self.module, self.printf, p[2])
+# Miscellaneous functions for binary and relational operators
+def process_binop(op):
+    return lambda l, r: BinopAexp(op, l, r)
 
-        @self.pg.production('expression : expression MUL expression')
-        @self.pg.production('expression : expression DIV expression')
-        @self.pg.production('expression : expression SUM expression')
-        @self.pg.production('expression : expression SUB expression')
+def process_relop(parsed):
+    ((left, op), right) = parsed
+    return RelopBexp(op, left, right)
 
-        def expression(p):
-            left = p[0]
-            right = p[2]
-            operator = p[1]
-            if operator.gettokentype() == 'SUM':
-                return Sum(self.builder, self.module, left, right)
-            elif operator.gettokentype() == 'SUB':
-                return Sub(self.builder, self.module, left, right)
-            elif operator.gettokentype() == 'MUL':
-                return Mul(self.builder, self.module, left, right)
-            elif operator.gettokentype() == 'DIV':
-                return Div(self.builder, self.module, left, right)
+def process_logic(op):
+    if op == 'and':
+        return lambda l, r: AndBexp(l, r)
+    elif op == 'or':
+        return lambda l, r: OrBexp(l, r)
+    else:
+        raise RuntimeError('unknown logic operator: ' + op)
 
-        @self.pg.production('expression : expression LESS_EQUAL expression')
-        @self.pg.production('expression : expression GREATER_EQUAL expression')
-        @self.pg.production('expression : expression GREATER expression')
-        @self.pg.production('expression : expression LESS expression')       
-        @self.pg.production('expression : expression NOT_EQUAL expression')
-        @self.pg.production('expression : expression EQUAL expression')
-        def compare(p):
-            left = p[0]
-            right = p[2]
-            operator = p[1]
-            if operator.gettokentype() == 'LESS_EQUAL':
-                return Less_equal(self.builder, self.module, left, right)
-            elif operator.gettokentype() == 'GREATER_EQUAL':
-                return Greater_equal(self.builder, self.module, left, right)
-            elif operator.gettokentype() == 'GREATER':
-                return Greater(self.builder, self.module, left, right)
-            elif operator.gettokentype() == 'LESS':
-                return Less(self.builder, self.module, left, right)
-            elif operator.gettokentype() == 'NOT_EQUAL':
-                return Not_equal(self.builder, self.module, left, right)
-            elif operator.gettokentype() == 'EQUAL':
-                return Equal(self.builder, self.module, left, right)
+def process_group(parsed):
+    ((_, p), _) = parsed
+    return p
 
-        @self.pg.production('expression : expression AND expression')
-        @self.pg.production('expression : expression OR expression')
-        def Combine(p):
-            left = p[0]
-            right = p[2]
-            operator = p[1]
-            if operator.gettokentype() == 'AND':
-                return And(self.builder, self.module, left, right)
-            elif operator.gettokentype() == 'OR':
-                return Or(self.builder, self.module, left, right)
+def any_operator_in_list(ops):
+    op_parsers = [keyword(op) for op in ops]
+    parser = reduce(lambda l, r: l | r, op_parsers)
+    return parser
 
+# Operator keywords and precedence levels
+aexp_precedence_levels = [
+    ['*', '/'],
+    ['+', '-'],
+]
 
-        @self.pg.production('expression : NUMBER')
-        def number(p):
-            return Number(self.builder, self.module, p[0].value)
-
-
-        @self.pg.error
-        def error_handle(token):
-            raise ValueError(token)
-
-    def get_parser(self):
-        return self.pg.build()
+bexp_precedence_levels = [
+    ['and'],
+    ['or'],
+]

@@ -1,0 +1,2 @@
+In order to run our program , use `python main.py testname`.
+For example, 'python main.py insert.foo'

@@ -1,54 +1,78 @@
-from rply import LexerGenerator
+import sys
+import re
+
+RESERVED = 'RESERVED'
+INT      = 'INT'
+ID       = 'ID'
+ARRAY    = 'ARRAY'
+STRING   = 'STRING'
+# INDEX    = 'INDEX'
+
+token_exprs = [
+    (r'\"[A-Za-z0-9_ \[\]\<\>\=\!\.\@\#\$\:\-\+]+\"',  STRING), 
+    (r'\[[\d+, ]*\d+\]',       ARRAY),  
+    # (r'[A-Za-z][A-Za-z0-9_]*\[\d+\]',  INDEX),  
+    (r'[ \n\t]+',              None),
+    (r'#[^\n]*',               None),
+    (r'\:=',                   RESERVED),
+    (r'\(',                    RESERVED),
+    (r'\)',                    RESERVED),
+    (r';',                     RESERVED),
+    (r'\+',                    RESERVED),
+    (r'-',                     RESERVED),
+    (r'\*',                    RESERVED),
+    (r'\,',                    RESERVED),
+    (r'\[',                    RESERVED),
+    (r'\]',                    RESERVED), 
+    (r'\.l',                   RESERVED),               
+    (r'/',                     RESERVED),
+    (r'<=',                    RESERVED),
+    (r'<',                     RESERVED),
+    (r'>=',                    RESERVED),
+    (r'>',                     RESERVED),
+    (r'!=',                    RESERVED),
+    (r'=',                     RESERVED),
+    (r'and',                   RESERVED),
+    (r'or',                    RESERVED),
+    (r'not',                   RESERVED),
+    (r'if',                    RESERVED),
+    (r'then',                  RESERVED),
+    (r'else',                  RESERVED),
+    (r'while',                 RESERVED),
+    (r'do',                    RESERVED),
+    (r'end',                   RESERVED),
+    (r'print',                 RESERVED),
+    (r'readin',                RESERVED),
+    (r'append',                RESERVED),
+
+    (r'[0-9]+',                INT),
+    # (r'\[ [INT,]* INT \]',    ARRAY),  
+    # (r'\[ [[0-9]+,]* [0-9]+ \]',    ARRAY),    
+    (r'[A-Za-z][A-Za-z0-9_]*', ID),
+]
+
+def lex(characters, token_exprs):
+    pos = 0
+    tokens = []
+    while pos < len(characters):
+        match = None
+        for token_expr in token_exprs:
+            pattern, tag = token_expr
+            regex = re.compile(pattern)
+            match = regex.match(characters, pos)
+            if match:
+                text = match.group(0)
+                if tag:
+                    token = (text, tag)
+                    tokens.append(token)
+                break
+        if not match:
+            sys.stderr.write('Illegal character: %s\n' % characters[pos])
+            sys.exit(1)
+        else:
+            pos = match.end(0)
+    return tokens
 
 
-class Lexer():
-    def __init__(self):
-        self.lexer = LexerGenerator()
-
-    def _add_tokens(self):
-        # Print
-        self.lexer.add('PRINT', r'print')
-        # Var
-        self.lexer.add('VAR', r'var')
-        # OR & AND
-        self.lexer.add('OR', r'\|')
-        self.lexer.add('AND', r'and')
-
-        # IF ELSE
-        self.lexer.add('IF', r'if')
-        self.lexer.add('ELSE', r'else')
-        self.lexer.add('OPEN_BRACE', r'\{')
-        self.lexer.add('CLOSE_BRACE', r'\}')
-
-        # Parenthesis
-        self.lexer.add('OPEN_PAREN', r'\(')
-        self.lexer.add('CLOSE_PAREN', r'\)')
-        # Semi Colon
-        self.lexer.add('SEMI_COLON', r'\;')
-        # Operators
-        self.lexer.add('SUM', r'\+')
-        self.lexer.add('SUB', r'\-')
-        self.lexer.add('MUL', r'\*')
-        self.lexer.add('DIV', r'\/')
-
-        self.lexer.add('LESS_EQUAL', r'\<=')
-        self.lexer.add('GREATER_EQUAL', r'\>=')
-        self.lexer.add('GREATER', r'\>')
-        self.lexer.add('LESS', r'\<')
-        self.lexer.add('NOT_EQUAL', r'\!=')
-        self.lexer.add('EQUAL', r'\==')        
-
-        # Assign
-        self.lexer.add('ASSIGN', r'\:=')
-        # Number
-        self.lexer.add('NUMBER', r'\d+')
-
-        # Name
-        self.lexer.add('NAME', r'[_A-Za-z]*')
-
-        # Ignore spaces
-        self.lexer.ignore('\s+')
-
-    def get_lexer(self):
-        self._add_tokens()
-        return self.lexer.build()
+def foo_lex(characters):
+    return lex(characters, token_exprs)

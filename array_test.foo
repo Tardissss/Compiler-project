@@ -1,0 +1,69 @@
+/* This is a test program for array operations */
+
+/* Test array append */
+list := [1];
+print "list = " + list;
+
+length := list.l;
+print "length = " + length;
+a := 2;
+append list a;
+print "list = " + list;
+append list 3;
+print "list = " + list;
+length := list.l;
+print "length = " + length;
+
+/* Test array index */
+b := list[0];
+print "list[0] = " + b;
+
+b := list[a];
+print "list[a] = " + b;
+
+b := list[a-1];
+print "list[a-1] = " + b;
+
+b := 100;
+list[0] := b;
+print "list = " + list;
+
+b := 100;
+list[1] := b-1;
+print "list = " + list;
+
+a := 2;
+list[a] := b-2;
+print "list = " + list;
+
+list[a-1] := 10086;
+print "list = " + list;
+
+
+/* Test comparations of arrays */
+list := [200, 400, 123];
+list2 := [213, 321, 123];
+if list[1] > list2[1] then
+	print "list[1] > list2[1]"
+else 
+	print "list[1] <= list2[1]"
+end;
+
+a := 2;
+if list[a] <= list2[a] then
+	print "list[a] <= list2[a]"
+else 
+	print "list[a] > list2[a]"
+end;
+
+if list[a-1] = list2[a-1] then
+	print "list[a-1] = list2[a-1]"
+else 
+	print "list[a-1] != list2[a-1]"
+end;
+
+if list = list2 then
+	print "list = list2"
+else 
+	print "list != list2"
+end
